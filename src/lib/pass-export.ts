@@ -116,21 +116,73 @@ export async function captureLiveCard(
 ): Promise<Blob | null> {
   await document.fonts.ready;
   await waitForImages(stage);
+
+  const DESKTOP_WIDTH = 860;
+  const DESKTOP_HEIGHT = 491;
+  const pixelRatio = CARD_TARGET_WIDTH / DESKTOP_WIDTH;
+
   stage.dataset.capturing = "true";
   const shaderRoots = Array.from(
     stage.querySelectorAll("[data-testid='paper-shader']"),
   );
   const pinShaderFrame = () =>
     shaderRoots.forEach((root) =>
-      root.dispatchEvent(new Event(PASS_EXPORT_PREPARE_EVENT)),
+      root.dispatchEvent(
+        new CustomEvent(PASS_EXPORT_PREPARE_EVENT, {
+          detail: { pixelRatio },
+        }),
+      ),
     );
   pinShaderFrame();
+
+  let container: HTMLDivElement | null = null;
   try {
-    // Let the pinning styles apply before cloning.
+    // Let the pinning styles + shader frame apply to the live stage first.
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    let blob = await snapshot(stage, {
-      pixelRatio: CARD_TARGET_WIDTH / Math.max(1, stage.offsetWidth),
+
+    // Create an off-screen container at desktop width (860px).
+    // This allows container query units (cqw) in the cloned card to evaluate at
+    // desktop scale, so font sizes, padding, and gaps are perfectly proportioned
+    // in the exported PNG regardless of the user's mobile screen size.
+    container = document.createElement("div");
+    container.style.cssText = `
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: ${DESKTOP_WIDTH}px;
+      height: ${DESKTOP_HEIGHT}px;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: -9999;
+    `;
+
+    const clone = stage.cloneNode(true) as HTMLElement;
+    clone.style.width = `${DESKTOP_WIDTH}px`;
+    clone.style.height = `${DESKTOP_HEIGHT}px`;
+    clone.style.maxWidth = `${DESKTOP_WIDTH}px`;
+
+    // Copy rendered WebGL paper shader canvas pixels into the clone.
+    const origCanvases = Array.from(stage.querySelectorAll("canvas"));
+    const cloneCanvases = Array.from(clone.querySelectorAll("canvas"));
+    origCanvases.forEach((origCanvas, i) => {
+      const cloneCanvas = cloneCanvases[i];
+      if (cloneCanvas) {
+        cloneCanvas.width = origCanvas.width;
+        cloneCanvas.height = origCanvas.height;
+        const ctx = cloneCanvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(origCanvas, 0, 0);
+        }
+      }
     });
+
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    // Let the browser calculate layout inside the off-screen container.
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    let blob = await snapshot(clone, { pixelRatio });
     if (blob && (await blobLooksBlank(blob))) {
       // The capture raced the card's first paint; wait for two frames and
       // take one more shot before giving up.
@@ -138,20 +190,22 @@ export async function captureLiveCard(
       await new Promise((resolve) =>
         requestAnimationFrame(() => requestAnimationFrame(resolve)),
       );
-      pinShaderFrame();
-      const retry = await snapshot(stage, {
-        pixelRatio: CARD_TARGET_WIDTH / Math.max(1, stage.offsetWidth),
-      });
+      const retry = await snapshot(clone, { pixelRatio });
       if (retry) blob = retry;
     }
     return blob;
   } finally {
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container);
+    }
     shaderRoots.forEach((root) =>
       root.dispatchEvent(new Event(PASS_EXPORT_RELEASE_EVENT)),
     );
     delete stage.dataset.capturing;
   }
 }
+
+
 
 let backdropPromise: Promise<Blob | null> | null = null;
 

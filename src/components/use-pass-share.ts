@@ -14,6 +14,7 @@ import {
 } from "../lib/pass-export";
 
 export type ShareState = "idle" | "working" | "copied" | "saved" | "error";
+export type ActiveAction = "none" | "share" | "download";
 export type ShareToastTone = "success" | "warning" | "error";
 
 export interface ShareToast {
@@ -52,6 +53,7 @@ export function usePassShare({
   username,
 }: UsePassShareOptions) {
   const [shareState, setShareState] = useState<ShareState>("idle");
+  const [activeAction, setActiveAction] = useState<ActiveAction>("none");
   const [toast, setToast] = useState<ShareToast | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
 
@@ -124,7 +126,8 @@ export function usePassShare({
 
   const shareCard = async (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    if (shareState === "working") return;
+    if (activeAction !== "none") return;
+    setActiveAction("share");
     setShareState("working");
     try {
       const blobPromise = getBlob();
@@ -134,11 +137,6 @@ export function usePassShare({
 
       const message = `Just got my pass for The Orchestra, AO's online hackathon. Your idea, an army of agents. Aug 12-13, online. aoagents.dev`;
 
-      // Phones only: the native share sheet carries the image straight into
-      // the X app, which the web intent URL cannot do. Desktop browsers
-      // (e.g. Chrome on Windows) also support navigator.share, but there the
-      // OS share sheet is a dead end for X — so desktop always falls through
-      // to clipboard + intent URL below.
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       const file = new File([blob], `orchestra-pass-${username.slice(1)}.png`, {
         type: "image/png",
@@ -155,14 +153,12 @@ export function usePassShare({
         try {
           await navigator.share({ files: [file], text: message, title: "The Orchestra" });
         } catch {
-          // The user dismissed the share sheet; nothing more to do.
+          // User dismissed share sheet
         }
         return;
       }
 
       if (!copiedToClipboard) {
-        // Clipboard image writes need browser support and permission; fall back
-        // to a download so the user still has the PNG.
         downloadBlob(blob, username);
         setShareState("saved");
       }
@@ -172,13 +168,15 @@ export function usePassShare({
       showToast("Couldn't capture the image", "error");
       setShareState("error");
     } finally {
+      setActiveAction("none");
       window.setTimeout(() => setShareState("idle"), 2400);
     }
   };
 
   const downloadCard = async (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    if (shareState === "working") return;
+    if (activeAction !== "none") return;
+    setActiveAction("download");
     setShareState("working");
     try {
       const blobPromise = getBlob();
@@ -188,15 +186,16 @@ export function usePassShare({
       downloadBlob(blob, username);
       const copiedToClipboard = await clipboardPromise;
       if (copiedToClipboard) {
-        showToast("Image copied to clipboard");
+        showToast("PNG Downloaded — Image copied to clipboard");
       } else {
-        showToast("Downloaded, but clipboard image copy is blocked", "warning");
+        showToast("PNG Downloaded");
       }
       setShareState("saved");
     } catch {
       showToast("Couldn't capture the image", "error");
       setShareState("error");
     } finally {
+      setActiveAction("none");
       window.setTimeout(() => setShareState("idle"), 2400);
     }
   };
@@ -204,5 +203,5 @@ export function usePassShare({
   /** Copies the pass image without a user gesture; callers handle failure. */
   const autoCopy = (): Promise<boolean> => copyPassToClipboard(getBlob());
 
-  return { shareState, toast, shareCard, downloadCard, autoCopy };
+  return { shareState, activeAction, toast, shareCard, downloadCard, autoCopy };
 }

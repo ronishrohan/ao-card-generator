@@ -69,7 +69,7 @@ export default function IntroPage() {
           {submittedHandle ? (
             <motion.section
               key="pass"
-              className="relative z-10 grid min-h-[100dvh] place-items-center px-[22px] py-10 sm:px-10"
+              className="relative z-10 flex flex-col items-center justify-center min-h-[100dvh] w-full px-4 py-8 sm:px-10"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: enterEase }}

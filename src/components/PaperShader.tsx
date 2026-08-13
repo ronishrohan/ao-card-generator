@@ -290,8 +290,8 @@ export function PaperShader({
     let disposed = false;
     const material = { x: 0, y: 0, foilX: 0, foilY: 0, speed: 0 };
 
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const resize = (dprOverride?: number) => {
+      const dpr = dprOverride ?? Math.min(window.devicePixelRatio || 1, 2);
       const width = Math.max(1, Math.round(canvas.clientWidth * dpr));
       const height = Math.max(1, Math.round(canvas.clientHeight * dpr));
       if (canvas.width !== width || canvas.height !== height) {
@@ -366,7 +366,14 @@ export function PaperShader({
         event instanceof CustomEvent && typeof event.detail?.timeMs === "number"
           ? event.detail.timeMs
           : PASS_EXPORT_FRAME_TIME;
+      // If the caller specifies a pixelRatio, resize the canvas to that
+      // resolution before drawing so the WebGL texture is crisp at export size.
+      const exportDpr =
+        event instanceof CustomEvent && typeof event.detail?.pixelRatio === "number"
+          ? event.detail.pixelRatio
+          : undefined;
       stop();
+      resize(exportDpr);
       draw(timeMs);
     };
     const handleExportRelease = () => {

@@ -61,11 +61,12 @@ export function InteractiveAOPass({
   const backdropRef = useRef<HTMLDivElement | null>(null);
   // Changes whenever the card content changes; retriggers the auto-copy.
   const identityKey = [username, identity, photo ?? ""].join("|");
-  const { shareState, toast, shareCard, downloadCard, autoCopy } = usePassShare({
-    stageRef,
-    backdropRef,
-    username,
-  });
+  const { shareState, activeAction, toast, shareCard, downloadCard, autoCopy } =
+    usePassShare({
+      stageRef,
+      backdropRef,
+      username,
+    });
 
   // Generate → copy: as soon as the card content is known, render the export
   // PNG and put it on the clipboard. Browsers may refuse a clipboard write
@@ -146,17 +147,17 @@ export function InteractiveAOPass({
           type="button"
           className={styles.shareButton}
           onClick={shareCard}
-          disabled={shareState === "working"}
+          disabled={activeAction !== "none"}
         >
-          {shareLabels[shareState]}
+          {activeAction === "share" ? "CAPTURING…" : "SHARE ON X"}
         </button>
         <button
           type="button"
           className={styles.shareButton}
           onClick={downloadCard}
-          disabled={shareState === "working"}
+          disabled={activeAction !== "none"}
         >
-          DOWNLOAD PASS
+          {activeAction === "download" ? "CAPTURING…" : "DOWNLOAD PASS"}
         </button>
       </div>
 

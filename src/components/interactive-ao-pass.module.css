@@ -7,7 +7,8 @@
   --ink-dark: #0d2138;
   position: relative;
   display: block;
-  width: min(860px, calc(100vw - 44px));
+  margin: 0 auto;
+  width: min(860px, calc(100vw - 32px));
   aspect-ratio: 1.75 / 1;
   padding: 0;
   border: 0;
@@ -350,11 +351,12 @@
   margin: 0;
   color: var(--ink-cream);
   font-family: var(--font-geist-mono), monospace;
-  font-size: clamp(9px, 1.9cqw, 16px);
+  font-size: clamp(6px, 1.8cqw, 16px);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   line-height: 1;
   text-transform: uppercase;
+  white-space: nowrap;
   opacity: 0.82;
 }
 
@@ -362,7 +364,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 2cqw;
+  gap: 1.5cqw;
   margin-top: 2cqw;
   padding-top: 2.2cqw;
   border-top: 1px solid rgb(220 190 156 / 42%);
@@ -372,15 +374,16 @@
   margin: 0;
   color: var(--ink-cream);
   font-family: var(--font-inter), var(--font-geist-sans), sans-serif;
-  font-size: clamp(13px, 3.1cqw, 27px);
+  font-size: clamp(8px, 2.7cqw, 27px);
   font-weight: 800;
   letter-spacing: 0.025em;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .dateLine {
   color: var(--ink-cream);
-  font-size: clamp(10px, 2.1cqw, 18px);
+  font-size: clamp(7px, 2cqw, 18px);
   text-align: right;
   white-space: nowrap;
 }
@@ -440,7 +443,7 @@
   z-index: 2;
   align-self: center;
   color: var(--ink-cream);
-  font-size: clamp(28px, 6.4cqw, 96px);
+  font-size: clamp(14px, 6.4cqw, 96px);
   letter-spacing: -0.035em;
   line-height: 0.94;
   text-shadow: 0 1px rgb(255 229 193 / 27%), 0 -1px rgb(30 3 5 / 72%);
@@ -457,8 +460,8 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, auto));
   align-items: end;
-  gap: 3cqw;
-  padding-top: 2.7cqw;
+  gap: 2.5cqw;
+  padding-top: 2.2cqw;
   border-top: 1px solid rgb(224 194 159 / 49%);
 }
 
@@ -469,14 +472,14 @@
 
 .detailLabel {
   color: var(--ink-cream);
-  font-size: clamp(8px, 1.4cqw, 12px);
+  font-size: clamp(6px, 1.4cqw, 12px);
   opacity: 0.72;
 }
 
 .detailValue {
   color: var(--ink-coral);
   font-family: var(--font-geist-mono), monospace;
-  font-size: clamp(10px, 2.35cqw, 20px);
+  font-size: clamp(7px, 2.1cqw, 20px);
   font-weight: 700;
   letter-spacing: 0.035em;
   line-height: 1;
@@ -484,9 +487,10 @@
 }
 
 .backMeta {
-  padding-left: 3cqw;
+  padding-left: 2.5cqw;
   border-left: 1px solid rgb(222 189 154 / 31%);
   color: var(--ink-cream);
+  font-size: clamp(6px, 1.6cqw, 14px);
   line-height: 1.15;
   white-space: nowrap;
 }
@@ -494,45 +498,6 @@
 @media (hover: hover) and (pointer: fine) {
   .stage[data-hovering="true"] .contactShadow {
     opacity: 0.92;
-  }
-}
-
-@media (max-width: 620px) {
-  .stage {
-    width: min(94vw, 520px);
-  }
-
-  .frontCopy {
-    padding-left: 5.5%;
-  }
-
-  .tagline {
-    font-size: clamp(7px, 1.6cqw, 14px);
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-  }
-
-  .frontFooter {
-    gap: 1.2cqw;
-  }
-
-  .passType {
-    font-size: clamp(10px, 2.4cqw, 22px);
-    white-space: nowrap;
-  }
-
-  .dateLine {
-    font-size: clamp(8px, 1.8cqw, 15px);
-  }
-
-  .backDetails {
-    grid-template-columns: 1.3fr 1fr;
-    row-gap: 2.2cqw;
-  }
-
-  .backMeta {
-    padding-left: 0;
-    border-left: 0;
   }
 }
 
@@ -562,9 +527,13 @@
 
 .shareWrap {
   position: relative;
-  display: grid;
-  justify-items: center;
-  gap: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+  gap: 20px;
 }
 
 .shareActions {
