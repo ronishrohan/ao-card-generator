@@ -36,27 +36,24 @@ interface UsePassShareOptions {
   stageRef: RefObject<HTMLDivElement | null>;
   backdropRef: RefObject<HTMLDivElement | null>;
   username: string;
-  /** Changes whenever the card content changes, invalidating the cached PNG. */
-  identityKey: string;
 }
 
 /**
- * Share/download state machine for the pass. The card is captured from the
- * live stage (what the user sees) and composited over the hidden backdrop, so
- * the exported PNG keeps the page background behind the ticket; the resulting
- * blob is cached per identityKey so generate/download/share all use the exact
- * same image.
+ * Share/download state machine for the pass. Every share/download click takes
+ * a FRESH capture of the live stage (pinned to the export frame) and
+ * composites it over the hidden backdrop — no cross-click caching: a capture
+ * that raced the card's first paint used to be cached and then reused by
+ * every later share/download, which is why a broken PNG kept coming back
+ * until the component remounted.
  */
 export function usePassShare({
   stageRef,
   backdropRef,
   username,
-  identityKey,
 }: UsePassShareOptions) {
   const [shareState, setShareState] = useState<ShareState>("idle");
   const [toast, setToast] = useState<ShareToast | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
-  const cacheRef = useRef<{ key: string; blob: Blob } | null>(null);
 
   const showToast = (message: string, tone: ShareToastTone = "success") => {
     if (toastTimeoutRef.current) {
@@ -80,7 +77,6 @@ export function usePassShare({
   };
 
   const getBlob = async (): Promise<Blob | null> => {
-    if (cacheRef.current?.key === identityKey) return cacheRef.current.blob;
     const stage = stageRef.current;
     const backdrop = backdropRef.current;
     if (!stage) return null;
@@ -89,9 +85,7 @@ export function usePassShare({
       captureLiveCard(stage),
     ]);
     if (!cardBlob) return null;
-    const blob = await composePassPng(backdropBlob, cardBlob);
-    if (blob) cacheRef.current = { key: identityKey, blob };
-    return blob;
+    return composePassPng(backdropBlob, cardBlob);
   };
 
   const getPngBlob = async (blob: Blob | null) => {

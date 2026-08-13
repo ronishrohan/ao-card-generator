@@ -689,6 +689,7 @@
 .stage[data-capturing="true"],
 .stage[data-capturing="true"] .ticket {
   transform: none !important;
+  opacity: 1 !important;
 }
 
 .stage[data-capturing="true"] .back {

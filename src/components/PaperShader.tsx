@@ -141,6 +141,18 @@ interface ShaderController {
   dispose: () => void;
 }
 
+/**
+ * Events the share/download capture uses to make the exported PNG
+ * deterministic: every shader pauses its animation loop and renders one fixed
+ * "beauty frame" (light ribbon over the stub), so the capture never reads a
+ * blank buffer or a dark phase of the loop. `detail.timeMs` overrides the
+ * frame time (used by tooling to pick the constant).
+ */
+export const PASS_EXPORT_PREPARE_EVENT = "ao-pass:export-prepare";
+export const PASS_EXPORT_RELEASE_EVENT = "ao-pass:export-release";
+/** uTime (ms) of the fixed export frame: light ribbon sits over the stub. */
+export const PASS_EXPORT_FRAME_TIME = 700;
+
 interface PaperShaderProps {
   active: boolean;
   interactionX?: MotionValue<number>;
@@ -349,6 +361,20 @@ export function PaperShader({
     const resizeObserver = new ResizeObserver(() => draw());
     resizeObserver.observe(canvas);
 
+    const handleExportPrepare = (event: Event) => {
+      const timeMs =
+        event instanceof CustomEvent && typeof event.detail?.timeMs === "number"
+          ? event.detail.timeMs
+          : PASS_EXPORT_FRAME_TIME;
+      stop();
+      draw(timeMs);
+    };
+    const handleExportRelease = () => {
+      if (activeRef.current && !reduceMotion) start();
+    };
+    root.addEventListener(PASS_EXPORT_PREPARE_EVENT, handleExportPrepare);
+    root.addEventListener(PASS_EXPORT_RELEASE_EVENT, handleExportRelease);
+
     const handleVisibility = () => {
       if (document.hidden) stop();
       else if (activeRef.current && !reduceMotion) start();
@@ -367,6 +393,8 @@ export function PaperShader({
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
       canvas.removeEventListener("webglcontextlost", handleContextLoss);
+      root.removeEventListener(PASS_EXPORT_PREPARE_EVENT, handleExportPrepare);
+      root.removeEventListener(PASS_EXPORT_RELEASE_EVENT, handleExportRelease);
       resizeObserver.disconnect();
       controllerRef.current = null;
       dispose();

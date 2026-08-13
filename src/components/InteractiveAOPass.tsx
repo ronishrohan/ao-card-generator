@@ -59,12 +59,12 @@ export function InteractiveAOPass({
   } = usePassInteraction({ flipped, setFlipped });
 
   const backdropRef = useRef<HTMLDivElement | null>(null);
+  // Changes whenever the card content changes; retriggers the auto-copy.
   const identityKey = [username, identity, photo ?? ""].join("|");
   const { shareState, toast, shareCard, downloadCard, autoCopy } = usePassShare({
     stageRef,
     backdropRef,
     username,
-    identityKey,
   });
 
   // Generate → copy: as soon as the card content is known, render the export

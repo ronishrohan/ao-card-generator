@@ -1,7 +1,12 @@
 // Client-only capture pipeline for the share/download PNG. The card is
-// captured from the LIVE, on-screen stage (so the PNG shows exactly what the
-// user sees — current shader frame, light and foil included) and composited
-// over a hidden, pre-rendered backdrop (base color + waves + overlay).
+// captured from the LIVE, on-screen stage — with the shaders pinned to one
+// fixed, good-looking frame — and composited over a hidden, pre-rendered
+// backdrop (base color + waves + overlay).
+
+import {
+  PASS_EXPORT_PREPARE_EVENT,
+  PASS_EXPORT_RELEASE_EVENT,
+} from "../components/PaperShader";
 
 export const EXPORT_WIDTH = 1600;
 export const EXPORT_HEIGHT = 900;
@@ -59,9 +64,52 @@ async function snapshot(
 }
 
 /**
+ * A capture that raced the card's first paint comes back fully transparent
+ * (the composed PNG then shows the bare backdrop). Sampling a downscaled copy
+ * is enough to catch that: a real card is opaque and full of contrast.
+ */
+async function blobLooksBlank(blob: Blob): Promise<boolean> {
+  try {
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 36;
+    const context = canvas.getContext("2d");
+    if (!context) return false;
+    context.drawImage(bitmap, 0, 0, 64, 36);
+    bitmap.close();
+    const { data } = context.getImageData(0, 0, 64, 36);
+    let transparent = 0;
+    let min = 255;
+    let max = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 10) {
+        transparent += 1;
+        continue;
+      }
+      const lum = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+      if (lum < min) min = lum;
+      if (lum > max) max = lum;
+    }
+    const total = data.length / 4;
+    return transparent / total > 0.9 || max - min < 6;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Captures the live card as it currently appears. The `data-capturing` CSS
  * pins the stage flat on its front face with `!important` transforms while
  * the snapshot runs, so no animation state has to be reset or restored.
+ *
+ * The paper shaders are paused and redrawn with one fixed, good-looking frame
+ * (`PASS_EXPORT_PREPARE_EVENT`) right before the snapshot: the shader loop is
+ * time-based, so capturing whatever frame happens to be current made exports
+ * a lottery — dark phases hid the perforation line and the ghost year, and an
+ * early capture could read a not-yet-painted canvas. Without a pinned frame
+ * the exported PNG "fixed itself" only when a later capture happened to land
+ * on a bright phase.
  */
 export async function captureLiveCard(
   stage: HTMLElement,
@@ -69,13 +117,38 @@ export async function captureLiveCard(
   await document.fonts.ready;
   await waitForImages(stage);
   stage.dataset.capturing = "true";
+  const shaderRoots = Array.from(
+    stage.querySelectorAll("[data-testid='paper-shader']"),
+  );
+  const pinShaderFrame = () =>
+    shaderRoots.forEach((root) =>
+      root.dispatchEvent(new Event(PASS_EXPORT_PREPARE_EVENT)),
+    );
+  pinShaderFrame();
   try {
     // Let the pinning styles apply before cloning.
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    return await snapshot(stage, {
+    let blob = await snapshot(stage, {
       pixelRatio: CARD_TARGET_WIDTH / Math.max(1, stage.offsetWidth),
     });
+    if (blob && (await blobLooksBlank(blob))) {
+      // The capture raced the card's first paint; wait for two frames and
+      // take one more shot before giving up.
+      console.warn("[export] blank capture, retrying");
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+      pinShaderFrame();
+      const retry = await snapshot(stage, {
+        pixelRatio: CARD_TARGET_WIDTH / Math.max(1, stage.offsetWidth),
+      });
+      if (retry) blob = retry;
+    }
+    return blob;
   } finally {
+    shaderRoots.forEach((root) =>
+      root.dispatchEvent(new Event(PASS_EXPORT_RELEASE_EVENT)),
+    );
     delete stage.dataset.capturing;
   }
 }

@@ -138,9 +138,9 @@ export default function IntroPage() {
                   initial={{ opacity: 0, scale: 0.8, y: 18 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ delay: 0.85, duration: 0.65, ease: enterEase }}
-                  className="mx-auto mt-6 flex h-14 w-fit max-w-full items-center gap-2 text-lg"
+                  className="mx-auto mt-6 flex h-14 w-full max-w-[32rem] items-center gap-2 text-lg"
                 >
-                  <div className="relative h-full w-[min(28rem,calc(100vw-2rem))] shrink-0">
+                  <div className="relative h-full min-w-0 flex-1">
                     <span className="pointer-events-none absolute inset-y-0 left-5 z-10 flex items-center text-white/45">
                       @
                     </span>
