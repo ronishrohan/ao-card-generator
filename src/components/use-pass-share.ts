@@ -53,6 +53,7 @@ export function usePassShare({
   username,
 }: UsePassShareOptions) {
   const [shareState, setShareState] = useState<ShareState>("idle");
+  const [activeAction, setActiveAction] = useState<ActiveAction>("none");
   const [toast, setToast] = useState<ShareToast | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
 

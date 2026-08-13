@@ -184,6 +184,8 @@ export async function captureLiveCard(
 
     let blob = await snapshot(clone, { pixelRatio });
     if (blob && (await blobLooksBlank(blob))) {
+      // The capture raced the card's first paint; wait for two frames and
+      // take one more shot before giving up.
       console.warn("[export] blank capture, retrying");
       await new Promise((resolve) =>
         requestAnimationFrame(() => requestAnimationFrame(resolve)),
