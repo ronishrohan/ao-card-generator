@@ -109,9 +109,9 @@ void main() {
   ) - 0.5;
   float fineGrain = mix(staticGrain, movingGrain, 0.62);
 
-  vec3 deepNavy = vec3(0.05, 0.11, 0.19);
-  vec3 darkSlate = vec3(0.11, 0.27, 0.4);
-  vec3 tealGlow = vec3(0.27, 0.55, 0.69);
+  vec3 deepNavy = vec3(0.04, 0.09, 0.165);
+  vec3 darkSlate = vec3(0.095, 0.235, 0.355);
+  vec3 tealGlow = vec3(0.235, 0.5, 0.64);
   vec3 softTeal = vec3(0.5, 0.74, 0.84);
   vec3 paleTeal = vec3(0.78, 0.92, 0.97);
 
@@ -119,7 +119,7 @@ void main() {
   color = mix(color, tealGlow, lightField * 0.69);
   color = mix(color, softTeal, pow(lightField, 1.58) * 0.58);
   color = mix(color, paleTeal, pow(glowA * ribbon, 1.2) * 0.35);
-  color *= 1.0 - shade * 0.15;
+  color *= 1.0 - shade * 0.19;
 
   float angleEnergy = abs(sin(radians(uAngle)));
   float inputEnergy = clamp(length(uPointer) * 0.75 + uSpeed * 1.8, 0.0, 1.0);

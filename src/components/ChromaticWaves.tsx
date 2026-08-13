@@ -3,11 +3,12 @@
 import { Camera, Mesh, Plane, Program, Renderer, RenderTarget } from "ogl";
 import { useEffect, useRef } from "react";
 
-const vertex = `#version 300 es
+// Exported so the share export can re-render the same dot grid offscreen.
+export const wavesVertexShader = `#version 300 es
 in vec2 position; in vec2 uv; out vec2 vUv;
 void main(){vUv=uv;gl_Position=vec4(position,0.,1.);}`;
 
-const fragment = `#version 300 es
+export const wavesFragmentShader = `#version 300 es
 precision mediump float;
 uniform float uTime; uniform vec2 uResolution; out vec4 color; in vec2 vUv;
 vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}
@@ -31,7 +32,7 @@ export function ChromaticWaves({ visible = true }: { visible?: boolean }) {
     const camera = new Camera(gl, { near: 0.1, far: 100 });
     camera.orthographic({ left: -1, right: 1, bottom: -1, top: 1, near: 0.1, far: 100 });
     const target = new RenderTarget(gl);
-    const program = new Program(gl, { vertex, fragment, uniforms: { uTime: { value: 0 }, uResolution: { value: [1, 1] } } });
+    const program = new Program(gl, { vertex: wavesVertexShader, fragment: wavesFragmentShader, uniforms: { uTime: { value: 0 }, uResolution: { value: [1, 1] } } });
     const mesh = new Mesh(gl, { geometry: new Plane(gl, { width: 2, height: 2 }), program });
     let frame = 0;
     const resize = () => { renderer.setSize(el.clientWidth, el.clientHeight); program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height]; };

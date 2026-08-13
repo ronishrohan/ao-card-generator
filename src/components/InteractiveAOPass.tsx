@@ -1,10 +1,11 @@
 "use client";
 
-import { motion } from "motion/react";
-import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { getPassIdentity, getTicketId, normalizeXUsername } from "../lib/pass-identity";
 import styles from "./interactive-ao-pass.module.css";
 import { PassBackFace, PassFrontFace } from "./pass-faces";
+import { ExportBackdrop } from "./ExportBackdrop";
 import { usePassInteraction, restingMaterial } from "./use-pass-interaction";
 import { shareLabels, usePassShare } from "./use-pass-share";
 
@@ -46,12 +47,9 @@ export function InteractiveAOPass({
     interactionY,
     tiltX,
     tiltY,
-    tiltXSource,
-    tiltYSource,
     flipProgress,
     lift,
     scale,
-    revealSource,
     handlePointerDown,
     handlePointerMove,
     endOrbit,
@@ -60,15 +58,32 @@ export function InteractiveAOPass({
     handleKeyDown,
   } = usePassInteraction({ flipped, setFlipped });
 
-  const { shareState, shareCard, downloadCard } = usePassShare({
+  const backdropRef = useRef<HTMLDivElement | null>(null);
+  const identityKey = [username, identity, photo ?? ""].join("|");
+  const { shareState, toast, shareCard, downloadCard, autoCopy } = usePassShare({
     stageRef,
+    backdropRef,
     username,
-    flipped,
-    flipProgress,
-    tiltXSource,
-    tiltYSource,
-    revealSource,
+    identityKey,
   });
+
+  // Generate → copy: as soon as the card content is known, render the export
+  // PNG and put it on the clipboard. Browsers may refuse a clipboard write
+  // this far from the user's click; in that case a notice points at the
+  // share button (a fresh gesture, which will succeed).
+  const [autoCopyFailed, setAutoCopyFailed] = useState(false);
+  const autoCopyRef = useRef(autoCopy);
+  autoCopyRef.current = autoCopy;
+  useEffect(() => {
+    let cancelled = false;
+    setAutoCopyFailed(false);
+    void autoCopyRef.current().then((copied) => {
+      if (!cancelled) setAutoCopyFailed(!copied);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [identityKey]);
 
   const shader = {
     interactionX,
@@ -144,6 +159,32 @@ export function InteractiveAOPass({
           DOWNLOAD PASS
         </button>
       </div>
+
+      {autoCopyFailed ? (
+        <p className={styles.copyNotice} role="status">
+          Couldn&apos;t auto-copy — use SHARE ON X to copy your pass.
+        </p>
+      ) : null}
+
+      <AnimatePresence>
+        {toast ? (
+          <motion.div
+            key={toast.id}
+            role="status"
+            aria-live="polite"
+            className={styles.toast}
+            data-tone={toast.tone}
+            initial={{ opacity: 0, x: "-50%", y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, x: "-50%", y: 0, scale: 1 }}
+            exit={{ opacity: 0, x: "-50%", y: 8, scale: 0.96 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+          >
+            {toast.message}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <ExportBackdrop rootRef={backdropRef} />
     </div>
   );
 }

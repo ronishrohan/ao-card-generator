@@ -9,6 +9,28 @@ import { useXProfile } from "./use-x-profile";
 
 const enterEase = [0.16, 1, 0.3, 1] as const;
 
+const normalizeHandleInput = (value: string) => {
+  const trimmed = value.trim();
+
+  try {
+    const url = new URL(
+      /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`,
+    );
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host === "x.com" || host === "twitter.com") {
+      return url.pathname.split("/").filter(Boolean)[0]?.replace(/^@/, "") ?? "";
+    }
+  } catch {
+    // Not a URL, so treat it as a plain handle below.
+  }
+
+  return trimmed
+    .replace(/^@/, "")
+    .replace(/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\//i, "")
+    .split(/[/?#]/)[0]
+    .replace(/^@/, "");
+};
+
 export default function IntroPage() {
   const [handle, setHandle] = useState("");
   const [submittedHandle, setSubmittedHandle] = useState<string | null>(null);
@@ -124,8 +146,7 @@ export default function IntroPage() {
                     </span>
                     <input
                       value={handle}
-                      onChange={(event) => setHandle(event.target.value.replace(/^@/, ""))}
-                      maxLength={15}
+                      onChange={(event) => setHandle(normalizeHandleInput(event.target.value))}
                       aria-label="X username"
                       autoCapitalize="none"
                       autoCorrect="off"
