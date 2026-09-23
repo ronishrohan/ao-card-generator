@@ -256,11 +256,35 @@ export async function composePassPng(
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
 
+/**
+ * Sanitizes a string for safe use as a filename.
+ * Handles spaces, punctuation, Unicode, and empty values.
+ */
+export function sanitizeFilename(input: string, defaultName = "pass"): string {
+  if (!input || typeof input !== "string") return defaultName;
+
+  let sanitized = input
+    // Trim leading/trailing whitespace
+    .trim()
+    // Remove leading @ symbols
+    .replace(/^@+/, "")
+    // Convert spaces to hyphens
+    .replace(/\s+/g, "-")
+    // Remove control characters
+    .replace(/[\x00-\x1F\x7F]/g, "")
+    // Replace multiple consecutive hyphens with single hyphen
+    .replace(/-+/g, "-")
+    // Trim hyphens from start and end
+    .replace(/^-+|-+$/g, "");
+
+  return sanitized || defaultName;
+}
+
 export function downloadBlob(blob: Blob, username: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `orchestra-pass-${username.replace(/^@/, "")}.png`;
+  link.download = `orchestra-pass-${sanitizeFilename(username)}.png`;
   link.click();
   URL.revokeObjectURL(url);
 }
