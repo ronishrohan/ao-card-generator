@@ -23,6 +23,12 @@ export function ChromaticWaves({ visible = true }: { visible?: boolean }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      el.style.transitionDuration = "0s";
+    }
+
     const renderer = new Renderer({ dpr: Math.min(devicePixelRatio || 1, 2), alpha: true });
     const gl = renderer.gl;
     gl.canvas.style.display = "block";
@@ -38,7 +44,14 @@ export function ChromaticWaves({ visible = true }: { visible?: boolean }) {
     const resize = () => { renderer.setSize(el.clientWidth, el.clientHeight); program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height]; };
     const observer = new ResizeObserver(resize); observer.observe(el); resize();
     const tick = (time: number) => { program.uniforms.uTime.value = time * 0.001; renderer.render({ scene: mesh, camera, target }); renderer.render({ scene: mesh, camera }); frame = requestAnimationFrame(tick); };
-    frame = requestAnimationFrame(tick);
+    const staticRender = (time: number = 800) => { program.uniforms.uTime.value = time * 0.001; renderer.render({ scene: mesh, camera, target }); renderer.render({ scene: mesh, camera }); };
+
+    if (prefersReducedMotion) {
+      staticRender();
+    } else {
+      frame = requestAnimationFrame(tick);
+    }
+
     return () => { cancelAnimationFrame(frame); observer.disconnect(); gl.canvas.remove(); };
   }, []);
   return <div ref={ref} aria-hidden="true" className={`pointer-events-none fixed inset-0 z-0 h-[100dvh] w-screen transition-opacity duration-700 ${visible ? "opacity-15" : "opacity-0"}`} />;
