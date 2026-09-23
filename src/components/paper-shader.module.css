@@ -64,10 +64,15 @@
 @media (prefers-reduced-motion: reduce) {
   .canvas {
     transition: none;
+    opacity: 0.84 !important;
   }
 
   .fallback {
     animation: none;
     background-position: 30% 12%, 76% 65%, 50% 50%, 0 0;
+  }
+
+  .root[data-ready="false"] .canvas {
+    opacity: 0 !important;
   }
 }
