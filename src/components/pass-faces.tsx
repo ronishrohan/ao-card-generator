@@ -74,6 +74,7 @@ export function PassFrontFace({
       className={`${styles.face} ${styles.front}`}
       aria-hidden={!visible}
       data-active={visible}
+      aria-label="Pass card front side"
     >
       <ShaderLayer {...shader} />
       <span className={styles.logoField} aria-hidden="true" />
@@ -143,6 +144,7 @@ export function PassBackFace({
       className={`${styles.face} ${styles.back}`}
       aria-hidden={!visible}
       data-active={visible}
+      aria-label="Pass card back side"
     >
       <ShaderLayer {...shader} />
       <span className={styles.logoField} aria-hidden="true" />
