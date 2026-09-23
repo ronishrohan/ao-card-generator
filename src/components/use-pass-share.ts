@@ -124,6 +124,11 @@ export function usePassShare({
     }
   };
 
+  /**
+   * Share the pass via Web Share API on mobile (if available), clipboard, and Twitter intent.
+   * Handles gracefully when Web Share API is unavailable, rejects, or errors.
+   * Prevents duplicate actions and provides clear user feedback at each stage.
+   */
   const shareCard = async (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (activeAction !== "none") return;
@@ -149,13 +154,28 @@ export function usePassShare({
         showToast("Clipboard image copy is blocked on this device", "warning");
       }
 
-      if (isMobile && navigator.canShare?.({ files: [file] })) {
+      // Try Web Share API on mobile if available
+      if (
+        isMobile &&
+        typeof navigator.share === "function" &&
+        navigator.canShare?.({ files: [file] })
+      ) {
         try {
           await navigator.share({ files: [file], text: message, title: "The Orchestra" });
-        } catch {
-          // User dismissed share sheet
+          setShareState("copied");
+          return;
+        } catch (error) {
+          // Handle Web Share API rejection: user dismissed, permission denied, or API failed.
+          // Check if it's an AbortError (user dismissed) — silent fallback.
+          // For other errors, warn user but proceed with fallback.
+          if (error instanceof DOMException && error.name === "AbortError") {
+            // User dismissed the share sheet; fall through to fallback
+          } else {
+            console.warn("[share] Web Share API failed", error);
+            showToast("Couldn't share. Opening Twitter intent instead.", "warning");
+          }
+          // Fall through to open Twitter intent
         }
-        return;
       }
 
       if (!copiedToClipboard) {
