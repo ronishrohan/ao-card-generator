@@ -99,7 +99,7 @@ export function InteractiveAOPass({
         role="button"
         tabIndex={0}
         className={styles.stage}
-        aria-label={flipped ? "Show identity side" : "Show pass details"}
+        aria-label={flipped ? "Pass card back side showing ticket details. Press Space or Enter to see front side." : "Pass card front side showing participant details. Press Space or Enter to see back side."}
         aria-pressed={flipped}
         data-side={flipped ? "back" : "front"}
         data-hovering={hovering}
@@ -148,6 +148,8 @@ export function InteractiveAOPass({
           className={styles.shareButton}
           onClick={shareCard}
           disabled={activeAction !== "none"}
+          aria-label="Share pass card on X (Twitter)"
+          aria-busy={activeAction === "share"}
         >
           {activeAction === "share" ? "CAPTURING…" : "SHARE ON X"}
         </button>
@@ -156,6 +158,8 @@ export function InteractiveAOPass({
           className={styles.shareButton}
           onClick={downloadCard}
           disabled={activeAction !== "none"}
+          aria-label="Download pass card as an image"
+          aria-busy={activeAction === "download"}
         >
           {activeAction === "download" ? "CAPTURING…" : "DOWNLOAD PASS"}
         </button>
