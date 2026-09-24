@@ -147,6 +147,11 @@ export default function IntroPage() {
                     <input
                       value={handle}
                       onChange={(event) => setHandle(normalizeHandleInput(event.target.value))}
+                      onKeyDown={(event) => {
+                        if (event.key !== "Escape") return;
+                        event.preventDefault();
+                        setHandle("");
+                      }}
                       aria-label="X username"
                       autoCapitalize="none"
                       autoCorrect="off"
