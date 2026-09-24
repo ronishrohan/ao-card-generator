@@ -213,11 +213,7 @@ export function usePassInteraction({
     resetPointerMaterial(event.currentTarget);
   };
 
-  const handleToggle = () => {
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false;
-      return;
-    }
+  const flipPass = () => {
     interactionX.set(0);
     interactionY.set(0);
     tiltXSource.set(0);
@@ -225,16 +221,19 @@ export function usePassInteraction({
     setFlipped((current) => !current);
   };
 
+  const handleToggle = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    flipPass();
+  };
+
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    const nextSideIsBack = !flipped;
-    if (!reduceMotion) flipProgress.set(nextSideIsBack ? 180 : 0);
-    interactionX.set(0);
-    interactionY.set(0);
-    tiltXSource.set(0);
-    tiltYSource.set(0);
-    setFlipped(nextSideIsBack);
+    if (event.repeat) return;
+    flipPass();
   };
 
   return {
