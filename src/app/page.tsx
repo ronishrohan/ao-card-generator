@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChromaticWaves } from "../components/ChromaticWaves";
 import { InteractiveAOPass } from "../components/InteractiveAOPass";
 import { useXProfile } from "./use-x-profile";
@@ -34,6 +34,12 @@ const normalizeHandleInput = (value: string) => {
 export default function IntroPage() {
   const [handle, setHandle] = useState("");
   const [submittedHandle, setSubmittedHandle] = useState<string | null>(null);
+  const handleInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (submittedHandle !== null) return;
+    handleInputRef.current?.focus({ preventScroll: true });
+  }, [submittedHandle]);
   const { profile, resetProfile } = useXProfile(submittedHandle);
   const validHandle =
     /^[A-Za-z0-9_]{5,15}$/.test(handle) &&
@@ -145,6 +151,7 @@ export default function IntroPage() {
                       @
                     </span>
                     <input
+                      ref={handleInputRef}
                       value={handle}
                       onChange={(event) => setHandle(normalizeHandleInput(event.target.value))}
                       aria-label="X username"
