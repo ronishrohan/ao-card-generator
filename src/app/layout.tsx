@@ -8,7 +8,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "The Orchestra | AO Participant Pass",
+  title: "Orchestra pass",
   description: "Your personalised admission pass for AO's online hackathon.",
   icons: { icon: "/favicon.svg" },
 };
