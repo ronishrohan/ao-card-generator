@@ -147,13 +147,20 @@ export default function IntroPage() {
                     <input
                       value={handle}
                       onChange={(event) => setHandle(normalizeHandleInput(event.target.value))}
+                      aria-describedby="x-handle-count"
                       aria-label="X username"
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
-                      className="h-full w-full rounded-xl border border-white/15 bg-black/20 py-3 pr-5 pl-10 text-white outline-none backdrop-blur-sm transition-[border-color,box-shadow] duration-200 placeholder:text-white/35 focus:border-white/35 focus:ring-2 focus:ring-white/25 focus:ring-offset-2 focus:ring-offset-[oklch(0.153_0.006_107.1)]"
+                      className="h-full w-full rounded-xl border border-white/15 bg-black/20 py-3 pr-16 pl-10 text-white outline-none backdrop-blur-sm transition-[border-color,box-shadow] duration-200 placeholder:text-white/35 focus:border-white/35 focus:ring-2 focus:ring-white/25 focus:ring-offset-2 focus:ring-offset-[oklch(0.153_0.006_107.1)]"
                       placeholder="Enter your X handle"
                     />
+                    <span
+                      id="x-handle-count"
+                      className="pointer-events-none absolute inset-y-0 right-4 z-10 flex items-center text-xs tabular-nums tracking-normal text-white/40"
+                    >
+                      {handle.length}/15
+                    </span>
                   </div>
                   <div
                     className={`h-14 shrink-0 overflow-visible transition-[width] duration-300 ease-out ${validHandle ? "w-14" : "w-0"}`}
