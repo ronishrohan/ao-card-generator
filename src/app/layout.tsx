@@ -7,9 +7,17 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+const title = "The Orchestra | AO Participant Pass";
+const description =
+  "Create your Orchestra pass ticket from your X username for AO's online hackathon.";
+
 export const metadata: Metadata = {
-  title: "The Orchestra | AO Participant Pass",
-  description: "Your personalised admission pass for AO's online hackathon.",
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+  },
   icons: { icon: "/favicon.svg" },
 };
 
