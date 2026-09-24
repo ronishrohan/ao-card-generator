@@ -15,12 +15,19 @@ export function useXProfile(submittedHandle: string | null) {
   const [profile, setProfile] = useState<XProfile>({});
 
   useEffect(() => {
-    if (!submittedHandle) return;
+    if (!submittedHandle) {
+      setProfile((current) =>
+        current.name === undefined && current.photo === undefined ? current : {},
+      );
+      return;
+    }
+
     const controller = new AbortController();
+    let active = true;
     fetch(`/api/x-profile?u=${submittedHandle}`, { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : null))
       .then((data: { name?: string | null; photo?: string | null } | null) => {
-        if (!data) return;
+        if (!active || !data) return;
         setProfile({
           name: data.name ?? undefined,
           photo: data.photo
@@ -31,7 +38,10 @@ export function useXProfile(submittedHandle: string | null) {
       .catch(() => {
         // Profile lookup is best-effort; the pass falls back to the handle.
       });
-    return () => controller.abort();
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [submittedHandle]);
 
   return { profile, resetProfile: () => setProfile({}) };

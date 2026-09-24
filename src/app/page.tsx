@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useState } from "react";
 import { ChromaticWaves } from "../components/ChromaticWaves";
@@ -46,6 +46,11 @@ export default function IntroPage() {
     setSubmittedHandle(handle);
   };
 
+  const returnToIntro = () => {
+    resetProfile();
+    setSubmittedHandle(null);
+  };
+
   return (
     <MotionConfig reducedMotion="user">
       <main className="relative min-h-[100dvh] overflow-hidden bg-[#0d0d0d]">
@@ -69,17 +74,28 @@ export default function IntroPage() {
           {submittedHandle ? (
             <motion.section
               key="pass"
-              className="relative z-10 flex flex-col items-center justify-center min-h-[100dvh] w-full px-4 py-8 sm:px-10"
+              className="relative z-10 flex min-h-[100dvh] w-full flex-col px-4 pt-5 pb-8 sm:px-10"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12, transition: { duration: 0.28, ease: enterEase } }}
               transition={{ duration: 0.7, ease: enterEase }}
               aria-label="Your personalised Orchestra pass"
             >
-              <InteractiveAOPass
-                xUsername={submittedHandle}
-                name={profile.name}
-                photo={profile.photo}
-              />
+              <button
+                type="button"
+                onClick={returnToIntro}
+                className="relative z-20 inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-white/15 bg-black/20 px-3 py-1.5 text-sm leading-5 tracking-[-0.01em] text-[oklch(0.737_0.021_106.9)] backdrop-blur-sm transition-[color,border-color,background-color,transform] duration-200 ease-out hover:border-white/30 hover:bg-white/5 hover:text-[oklch(0.988_0.003_106.5)] focus-visible:border-white/35 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0d0d] active:scale-95"
+              >
+                <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
+                Change handle
+              </button>
+              <div className="flex w-full flex-1 items-center justify-center">
+                <InteractiveAOPass
+                  xUsername={submittedHandle}
+                  name={profile.name}
+                  photo={profile.photo}
+                />
+              </div>
             </motion.section>
           ) : (
             <motion.section
