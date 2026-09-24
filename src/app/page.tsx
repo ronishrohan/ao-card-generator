@@ -31,6 +31,19 @@ const normalizeHandleInput = (value: string) => {
     .replace(/^@/, "");
 };
 
+const xHandleHint = (handle: string) => {
+  if (!handle) return null;
+  if (!/^[A-Za-z0-9_]*$/.test(handle)) {
+    return "Use only letters, numbers, and underscores.";
+  }
+  if (handle.length < 5) return "Use at least 5 characters.";
+  if (handle.length > 15) return "Use 15 characters or fewer.";
+  if (handle.toLowerCase().includes("admin")) {
+    return "Handles can’t include “admin”.";
+  }
+  return null;
+};
+
 export default function IntroPage() {
   const [handle, setHandle] = useState("");
   const [submittedHandle, setSubmittedHandle] = useState<string | null>(null);
@@ -38,6 +51,7 @@ export default function IntroPage() {
   const validHandle =
     /^[A-Za-z0-9_]{5,15}$/.test(handle) &&
     !handle.toLowerCase().includes("admin");
+  const handleHint = validHandle ? null : xHandleHint(handle);
 
   const submitHandle = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -138,34 +152,47 @@ export default function IntroPage() {
                   initial={{ opacity: 0, scale: 0.8, y: 18 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ delay: 0.85, duration: 0.65, ease: enterEase }}
-                  className="mx-auto mt-6 flex h-14 w-full max-w-[32rem] items-center gap-2 text-lg"
+                  className="mx-auto mt-6 w-full max-w-[32rem] text-lg"
                 >
-                  <div className="relative h-full min-w-0 flex-1">
-                    <span className="pointer-events-none absolute inset-y-0 left-5 z-10 flex items-center text-white/45">
-                      @
-                    </span>
-                    <input
-                      value={handle}
-                      onChange={(event) => setHandle(normalizeHandleInput(event.target.value))}
-                      aria-label="X username"
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      className="h-full w-full rounded-xl border border-white/15 bg-black/20 py-3 pr-5 pl-10 text-white outline-none backdrop-blur-sm transition-[border-color,box-shadow] duration-200 placeholder:text-white/35 focus:border-white/35 focus:ring-2 focus:ring-white/25 focus:ring-offset-2 focus:ring-offset-[oklch(0.153_0.006_107.1)]"
-                      placeholder="Enter your X handle"
-                    />
-                  </div>
-                  <div
-                    className={`h-14 shrink-0 overflow-visible transition-[width] duration-300 ease-out ${validHandle ? "w-14" : "w-0"}`}
-                  >
-                    <button
-                      type="submit"
-                      aria-label="Continue"
-                      className={`grid h-14 w-14 place-items-center rounded-xl bg-[oklch(0.93_0.007_106.5)] text-[oklch(0.228_0.013_107.4)] transition-[transform,background-color] duration-300 ease-out hover:bg-white active:scale-95 ${validHandle ? "scale-100" : "scale-0"}`}
+                  <div className="flex h-14 items-center gap-2">
+                    <div className="relative h-full min-w-0 flex-1">
+                      <span className="pointer-events-none absolute inset-y-0 left-5 z-10 flex items-center text-white/45">
+                        @
+                      </span>
+                      <input
+                        id="x-handle"
+                        value={handle}
+                        onChange={(event) => setHandle(normalizeHandleInput(event.target.value))}
+                        aria-label="X username"
+                        aria-invalid={Boolean(handleHint)}
+                        aria-describedby={handleHint ? "x-handle-hint" : undefined}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        className="h-full w-full rounded-xl border border-white/15 bg-black/20 py-3 pr-5 pl-10 text-white outline-none backdrop-blur-sm transition-[border-color,box-shadow] duration-200 placeholder:text-white/35 focus:border-white/35 focus:ring-2 focus:ring-white/25 focus:ring-offset-2 focus:ring-offset-[oklch(0.153_0.006_107.1)]"
+                        placeholder="Enter your X handle"
+                      />
+                    </div>
+                    <div
+                      className={`h-14 shrink-0 overflow-visible transition-[width] duration-300 ease-out ${validHandle ? "w-14" : "w-0"}`}
                     >
-                      <ArrowRight size={22} strokeWidth={1.8} />
-                    </button>
+                      <button
+                        type="submit"
+                        aria-label="Continue"
+                        className={`grid h-14 w-14 place-items-center rounded-xl bg-[oklch(0.93_0.007_106.5)] text-[oklch(0.228_0.013_107.4)] transition-[transform,background-color] duration-300 ease-out hover:bg-white active:scale-95 ${validHandle ? "scale-100" : "scale-0"}`}
+                      >
+                        <ArrowRight size={22} strokeWidth={1.8} />
+                      </button>
+                    </div>
                   </div>
+                  {handleHint ? (
+                    <p
+                      id="x-handle-hint"
+                      className="mt-3 text-sm font-normal leading-5 tracking-[-0.3px] text-[oklch(0.737_0.021_106.9)]"
+                    >
+                      {handleHint}
+                    </p>
+                  ) : null}
                 </motion.form>
               </div>
             </motion.section>
