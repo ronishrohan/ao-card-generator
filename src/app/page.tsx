@@ -2,12 +2,16 @@
 
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { ChromaticWaves } from "../components/ChromaticWaves";
 import { InteractiveAOPass } from "../components/InteractiveAOPass";
 import { useXProfile } from "./use-x-profile";
 
 const enterEase = [0.16, 1, 0.3, 1] as const;
+const introTitle = "Orchestra pass";
+
+const documentTitle = (handle: string | null) =>
+  handle ? `${introTitle} · @${handle}` : introTitle;
 
 const normalizeHandleInput = (value: string) => {
   const trimmed = value.trim();
@@ -35,6 +39,11 @@ export default function IntroPage() {
   const [handle, setHandle] = useState("");
   const [submittedHandle, setSubmittedHandle] = useState<string | null>(null);
   const { profile, resetProfile } = useXProfile(submittedHandle);
+
+  useLayoutEffect(() => {
+    document.title = documentTitle(submittedHandle);
+  }, [submittedHandle]);
+
   const validHandle =
     /^[A-Za-z0-9_]{5,15}$/.test(handle) &&
     !handle.toLowerCase().includes("admin");
