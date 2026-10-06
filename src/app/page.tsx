@@ -36,7 +36,7 @@ export default function IntroPage() {
   const [submittedHandle, setSubmittedHandle] = useState<string | null>(null);
   const { profile, resetProfile } = useXProfile(submittedHandle);
   const validHandle =
-    /^[A-Za-z0-9_]{5,15}$/.test(handle) &&
+    /^[A-Za-z0-9_]{1,15}$/.test(handle) &&
     !handle.toLowerCase().includes("admin");
 
   const submitHandle = (event: React.FormEvent<HTMLFormElement>) => {
